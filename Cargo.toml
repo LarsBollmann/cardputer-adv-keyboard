@@ -1,0 +1,22 @@
+[package]
+name = "cardputer-adv-keyboard"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lars Bollmann"]
+description = "Rust library implementing an easy to use interface for getting keyboard input on the Cardputer-Adv"
+license = "MIT OR Apache-2.0"
+keywords = ["cardputer", "cardputer-adv", "keyboard", "i2c", "no_std"]
+categories = ["embedded", "no-std", "hardware-support"]
+repository = "https://github.com/LarsBollmann/cardputer-adv-keyboard"
+
+[dependencies]
+embedded-hal = "1.0"
+tca8418 = "0.2.1"
+defmt = { version = "1.0.1", optional = true }
+
+[dev-dependencies]
+heapless = "0.9.2"
+
+[features]
+## Enable optional support for defmt
+defmt = ["dep:defmt", "tca8418/defmt"]
