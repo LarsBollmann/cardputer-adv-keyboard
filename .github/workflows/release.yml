@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-version:
+    name: Verify Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check tag matches Cargo.toml version
+        run: |
+          CARGO_VERSION="v$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[0].version')"
+          GIT_TAG="${GITHUB_REF#refs/tags/}"
+          echo "Cargo.toml version: $CARGO_VERSION"
+          echo "Git tag: $GIT_TAG"
+          if [ "$CARGO_VERSION" != "$GIT_TAG" ]; then
+            echo "::error::Version mismatch! Cargo.toml has $CARGO_VERSION but tag is $GIT_TAG"
+            exit 1
+          fi
+
+  ci:
+    name: CI
+    needs: verify-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo fmt --check
+      - run: cargo clippy --all-features -- -D warnings
+      - run: cargo test --all-features
+      - run: cargo doc --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+      - name: Verify publishable
+        run: cargo publish --dry-run
+
+  publish:
+    name: Publish to crates.io
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_REGISTRY_TOKEN }}
+
+  docs:
+    name: Deploy Docs
+    needs: [ci,publish]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build docs
+        run: cargo doc --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: "--cfg docsrs"
+      - name: Add redirect index.html
+        run: echo '<meta http-equiv="refresh" content="0;url=cardputer_adv_keyboard/index.html">' > target/doc/index.html
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/doc
+      - id: deployment
+        uses: actions/deploy-pages@v4

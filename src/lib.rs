@@ -137,11 +137,11 @@ const MAX_EVENTS: usize = 10;
 ///
 /// Each event carries a [`physical_key`](Self::physical_key) identifying
 /// which key on the keyboard was pressed or released.
-/// 
+///
 /// On presses, [`input`](Self::input) contains the resolved [`KeyInput`]
 /// after applying shift/Fn modifiers.
 /// On releases it is `None`.
-/// 
+///
 /// If you only care about basic input then you can
 /// just use `input`.
 /// If you need raw information about pressed and released keys (games, custom bindings) you can use `physical_key` and the additional information in this struct.
@@ -195,15 +195,15 @@ impl KeyState {
 /// | Space | `Char(' ')` |
 /// | Fn + `` ` `` | `Escape` |
 /// | Fn + Backspace | `Delete` |
-/// 
+///
 /// If a key has no special meaning for the currently pressed modifier, it just returns it's default.
-/// 
+///
 /// Fn + `w` => `Char('w')
-/// 
+///
 /// If a key has both a Shift and Fn layer, the Fn layer is always prioritized when both are pressed.
-/// 
+///
 /// Fn + Shift + `;` => `Arrow(Arrow::Up)`
-/// 
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum KeyInput {
@@ -245,7 +245,6 @@ pub enum Modifier {
     Opt,
     Alt,
 }
-
 
 /// This represents an actual physical key on the Cardputer keyboard.
 ///
@@ -610,7 +609,7 @@ where
     }
 
     /// Read all pending events from the TCA8418 and return them as an iterator of [KeyInputs](KeyInput)
-    /// 
+    ///
     /// This drains all events from the TCA8418 FIFO including key releases, which will be discarded.
     /// If you also need key releases, use [.events()](Keyboard::events) instead.
     pub fn inputs(&mut self) -> Result<impl Iterator<Item = KeyInput>, tca8418::Error<E>> {
@@ -618,7 +617,7 @@ where
     }
 
     /// Read all pending events from the TCA8418 and return an Iterator over [KeyboardEvent].
-    /// 
+    ///
     /// This drains all events from the TCA8418 FIFO.
     pub fn events(&mut self) -> Result<KeyboardEventIter, tca8418::Error<E>> {
         let mut events = [None; MAX_EVENTS];
