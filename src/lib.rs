@@ -1,8 +1,8 @@
 //! A keyboard driver for the [M5Stack Cardputer-Adv](https://docs.m5stack.com/en/core/Cardputer-Adv), built on top of the [tca8418](https://crates.io/crates/tca8418) driver.
 //! Handles key press/release events, shift/Fn layer resolution and modifier tracking.
 //!
-//! This crate provides a [Keyboard] type that can be created using a type that implements [I2c].
-//! This is provided by the HAL you use.
+//! This crate provides a [Keyboard] type that can be created using any type that implements [I2c].
+//! This is provided by your HAL.
 //! All methods using the underlying I²C bus return a [tca8418::Error] on I²C failure.
 //!
 //! You can get all pending inputs using [.inputs()](Keyboard::inputs) on the created [Keyboard].
@@ -11,7 +11,7 @@
 //! You can either use polling or the TCA8418's interrupt output to know when events are available.
 //!
 //! # Examples
-//! Here is an basic example on how to capture user text input.
+//! Here is a basic example on how to capture user text input.
 //! See the examples in the repository for a full example app using esp-hal.
 //!
 //! ```rust,no_run
@@ -78,7 +78,6 @@
 //! # fn undo() {}
 //! # fn example(keyboard: &mut cardputer_adv_keyboard::Keyboard<impl embedded_hal::i2c::I2c>) {
 //! use cardputer_adv_keyboard::{PhysicalKey, ModifierState};
-
 //! for event in keyboard.events().unwrap() {
 //!     // Only act on presses
 //!     if !event.state.is_pressed() {
@@ -97,7 +96,7 @@
 //! ```
 //!
 //! ## Tracking held keys
-//! ```
+//! ```rust,no_run
 //! # struct Player{};
 //! # impl Player {
 //! #     fn move_forward(&self) {}
@@ -142,8 +141,7 @@ const MAX_EVENTS: usize = 10;
 /// after applying shift/Fn modifiers.
 /// On releases it is `None`.
 ///
-/// If you only care about basic input then you can
-/// just use `input`.
+/// If you only care about basic input then you can just use `input`.
 /// If you need raw information about pressed and released keys (games, custom bindings) you can use `physical_key` and the additional information in this struct.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -151,7 +149,7 @@ pub struct KeyboardEvent {
     /// The resolved semantic input, if applicable.
     ///
     /// `Some` on key press, `None` on key release. Release events should
-    /// be matched by `physical`, not by resolved input, since the modifier
+    /// be matched by `physical_key`, not by resolved input, since the modifier
     /// state may have changed between press and release.
     pub input: Option<KeyInput>,
     /// Which physical key was pressed or released. This is always independent of modifier keys.
@@ -196,9 +194,9 @@ impl KeyState {
 /// | Fn + `` ` `` | `Escape` |
 /// | Fn + Backspace | `Delete` |
 ///
-/// If a key has no special meaning for the currently pressed modifier, it just returns it's default.
+/// If a key has no special meaning for the currently pressed modifier, it just returns its default.
 ///
-/// Fn + `w` => `Char('w')
+/// Fn + `w` => `Char('w')`
 ///
 /// If a key has both a Shift and Fn layer, the Fn layer is always prioritized when both are pressed.
 ///
@@ -494,9 +492,9 @@ pub struct ModifierState {
 ///  
 /// If you need more detailed information about key events like released keys or currently held modifiers
 /// (for games, custom bindings, etc.), you can use [.events()](`Keyboard::events`) get an Iterator over
-/// all pending [`KeyboardEvents`](KeyboardEvent)
+/// all pending [`KeyboardEvents`](KeyboardEvent).
 ///
-/// in addition to an optional [`input`](KeyboardEvent::input) each [`KeyboardEvent`] also exposes:
+/// In addition to an optional [`input`](KeyboardEvent::input), each [`KeyboardEvent`] also has the following fields:
 ///
 /// - [`physical_key`](KeyboardEvent::physical_key): a [`PhysicalKey`] identifying
 ///   which key on the keyboard caused this event, regardless of modifier state.
@@ -544,7 +542,7 @@ impl<I2C, E> Keyboard<I2C>
 where
     I2C: I2c<Error = E>,
 {
-    /// Create a new keyboard from a TCA8418 driver instance.
+    /// Create a new keyboard driver instance.
     pub fn new(i2c: I2C) -> Self {
         Self {
             tca8418: Tca8418::new(i2c),
@@ -749,11 +747,8 @@ where
 
 /// Iterator over processed keyboard events from a single [`Keyboard::events`] call.
 pub struct KeyboardEventIter {
-    #[doc(hidden)]
     events: [Option<KeyboardEvent>; MAX_EVENTS],
-    #[doc(hidden)]
     index: usize,
-    #[doc(hidden)]
     count: usize,
 }
 
