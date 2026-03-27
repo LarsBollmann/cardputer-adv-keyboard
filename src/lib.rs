@@ -629,8 +629,6 @@ where
             }
         }
 
-        self.tca8418.clear_interrupts(InterruptFlags::K_INT)?;
-
         Ok(KeyboardEventIter {
             events,
             index: 0,
