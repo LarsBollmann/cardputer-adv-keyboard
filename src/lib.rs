@@ -740,12 +740,10 @@ where
         self.tca8418.enable_key_event_interrupt(false)
     }
 
-
     /// Enable FIFO overflow interrupt
     pub fn enable_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.enable_overflow_interrupt(true)
     }
-
 
     /// Disable FIFO overflow interrupt
     pub fn disable_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
@@ -760,7 +758,7 @@ where
     /// Clear the key event interrupt flag.
     pub fn clear_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.clear_interrupts(InterruptFlags::OVR_FLOW_INT)
-    } 
+    }
 
     /// Clear the key event interrupt flag.
     pub fn clear_keyboard_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
