@@ -739,6 +739,11 @@ where
         self.tca8418.enable_key_event_interrupt(false)
     }
 
+    /// See if the overflow interrupt status flag is set
+    pub fn has_overflow_interrupt_pending(&mut self) -> Result<bool, tca8418::Error<E>> {
+        self.tca8418.has_pending_key_event()
+    }
+
     /// Enable FIFO overflow interrupt
     pub fn enable_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.enable_overflow_interrupt(true)
@@ -754,14 +759,14 @@ where
         self.tca8418.clear_all_interrupts()
     }
 
-    /// Clear the key event interrupt flag.
-    pub fn clear_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
-        self.tca8418.clear_interrupts(InterruptFlags::OVR_FLOW_INT)
-    }
-
-    /// Clear the key event interrupt flag.
+    /// Clear the keyboard event interrupt flag.
     pub fn clear_keyboard_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.clear_interrupts(InterruptFlags::K_INT)
+    }
+
+    /// Clear the overflow interrupt flag.
+    pub fn clear_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.clear_interrupts(InterruptFlags::OVR_FLOW_INT)
     }
 }
 
