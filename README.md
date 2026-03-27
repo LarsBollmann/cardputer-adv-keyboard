@@ -12,8 +12,7 @@ Handles press/release events, shift/Fn layer resolution and modifier tracking.
 ```rust,ignore
 use cardputer_adv_keyboard::Keyboard;
 
-let mut keyboard = Keyboard::new(i2c);
-keyboard.init().unwrap();
+let mut keyboard = Keyboard::new(i2c).unwrap();
 ```
 
 ## Usage

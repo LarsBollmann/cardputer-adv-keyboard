@@ -23,8 +23,7 @@
 //! let mut input_string: String<64> = String::new();
 //!
 //! // You need to create i2c using your HAL crate.
-//! let mut keyboard = Keyboard::new(i2c);
-//! keyboard.init().unwrap();
+//! let mut keyboard = Keyboard::new(i2c).unwrap();
 //!
 //! loop {
 //!     for input in keyboard.inputs().unwrap() {
@@ -445,16 +444,14 @@ pub struct ModifierState {
 ///
 /// # Getting started
 ///
-/// Create a [`Keyboard`] from [`I2c`] and call
-/// [`init`](Keyboard::init) to configure the hardware:
+/// Create a [`Keyboard`] from [`I2c`] to create the keyboard instance and configure the hardware.
 ///
 /// ```rust,no_run
 /// # fn example(i2c: impl embedded_hal::i2c::I2c) {
 /// use tca8418::Tca8418;
 /// use cardputer_adv_keyboard::Keyboard;
 ///
-/// let mut keyboard = Keyboard::new(i2c);
-/// keyboard.init().unwrap();
+/// let mut keyboard = Keyboard::new(i2c).unwrap();
 /// # }
 /// ```
 ///
@@ -542,22 +539,26 @@ impl<I2C, E> Keyboard<I2C>
 where
     I2C: I2c<Error = E>,
 {
-    /// Create a new keyboard driver instance.
-    pub fn new(i2c: I2C) -> Self {
-        Self {
+    /// Create a new keyboard driver instance and initialize it
+    pub fn new(i2c: I2C) -> Result<Self, tca8418::Error<E>> {
+        let mut keyboard = Self {
             tca8418: Tca8418::new(i2c),
             modifiers: ModifierState::default(),
-        }
+        };
+        keyboard.init()?;
+        Ok(keyboard)
     }
 
     /// Initialize the TCA8418 for the Cardputer-Adv keyboard.
     ///
     /// Configures 7 rows (R0–R6) × 8 columns (C0–C7) and drains any
     /// stale events from the FIFO.
-    pub fn init(&mut self) -> Result<(), tca8418::Error<E>> {
+    fn init(&mut self) -> Result<(), tca8418::Error<E>> {
         let pins = PinMask::rows(0x7F) | PinMask::cols(0xFF);
         self.tca8418.configure_keypad(pins)?;
         while self.tca8418.read_event()?.is_some() {}
+        self.enable_keyboard_interrupts()?;
+        self.clear_interrupts()?;
         Ok(())
     }
 
@@ -628,6 +629,8 @@ where
             }
         }
 
+        self.tca8418.clear_interrupts(InterruptFlags::K_INT)?;
+
         Ok(KeyboardEventIter {
             events,
             index: 0,
@@ -636,12 +639,12 @@ where
     }
 
     /// Get a reference to the underlying TCA8418 driver.
-    pub fn tca(&self) -> &Tca8418<I2C> {
+    pub fn tca8418(&self) -> &Tca8418<I2C> {
         &self.tca8418
     }
 
     /// Get a mutable reference to the underlying TCA8418 driver.
-    pub fn tca_mut(&mut self) -> &mut Tca8418<I2C> {
+    pub fn tca8418_mut(&mut self) -> &mut Tca8418<I2C> {
         &mut self.tca8418
     }
 
@@ -731,16 +734,22 @@ where
 
     /// Enable keyboard event interrupts
     pub fn enable_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.clear_all_interrupts()?;
         self.tca8418.enable_key_event_interrupt(true)
     }
 
-    /// Enable keyboard event interrupts
+    /// Disable keyboard event interrupts
     pub fn disable_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.enable_key_event_interrupt(false)
     }
 
-    /// Clear the key event interrupt flag.
+    /// Clear all interrupt flags.
     pub fn clear_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.clear_all_interrupts()
+    }
+
+    /// Clear the key event interrupt flag.
+    pub fn clear_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.clear_interrupts(InterruptFlags::K_INT)
     }
 }
