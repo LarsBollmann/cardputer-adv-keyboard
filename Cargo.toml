@@ -1,6 +1,6 @@
 [package]
 name = "cardputer-adv-keyboard"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2024"
 authors = ["Lars Bollmann"]
 description = "Rust library implementing an easy to use interface for getting keyboard input on the Cardputer-Adv"
