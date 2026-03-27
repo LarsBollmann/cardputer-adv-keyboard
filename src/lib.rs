@@ -557,7 +557,6 @@ where
         let pins = PinMask::rows(0x7F) | PinMask::cols(0xFF);
         self.tca8418.configure_keypad(pins)?;
         while self.tca8418.read_event()?.is_some() {}
-        self.enable_keyboard_interrupt()?;
         self.clear_interrupts()?;
         Ok(())
     }
