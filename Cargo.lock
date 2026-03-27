@@ -140,9 +140,9 @@ dependencies = [
 
 [[package]]
 name = "tca8418"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ed82f79b9950b14e3a8b3d45ce2bb6e0ba60d7c6a8c6799431cea3fbfeb4d2f"
+checksum = "fc5decd215bd300b27fab182f7ef2b742bc914ba138f39b900d77a4bd1e5cce8"
 dependencies = [
  "defmt",
  "embedded-hal",

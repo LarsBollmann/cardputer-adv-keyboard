@@ -557,7 +557,7 @@ where
         let pins = PinMask::rows(0x7F) | PinMask::cols(0xFF);
         self.tca8418.configure_keypad(pins)?;
         while self.tca8418.read_event()?.is_some() {}
-        self.enable_keyboard_interrupts()?;
+        self.enable_keyboard_interrupt()?;
         self.clear_interrupts()?;
         Ok(())
     }
@@ -731,14 +731,25 @@ where
     }
 
     /// Enable keyboard event interrupts
-    pub fn enable_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
-        self.tca8418.clear_all_interrupts()?;
+    pub fn enable_keyboard_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.enable_key_event_interrupt(true)
     }
 
     /// Disable keyboard event interrupts
-    pub fn disable_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
+    pub fn disable_keyboard_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.enable_key_event_interrupt(false)
+    }
+
+
+    /// Enable FIFO overflow interrupt
+    pub fn enable_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.enable_overflow_interrupt(true)
+    }
+
+
+    /// Disable FIFO overflow interrupt
+    pub fn disable_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.enable_overflow_interrupt(false)
     }
 
     /// Clear all interrupt flags.
@@ -747,7 +758,12 @@ where
     }
 
     /// Clear the key event interrupt flag.
-    pub fn clear_keyboard_interrupts(&mut self) -> Result<(), tca8418::Error<E>> {
+    pub fn clear_overflow_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
+        self.tca8418.clear_interrupts(InterruptFlags::OVR_FLOW_INT)
+    } 
+
+    /// Clear the key event interrupt flag.
+    pub fn clear_keyboard_interrupt(&mut self) -> Result<(), tca8418::Error<E>> {
         self.tca8418.clear_interrupts(InterruptFlags::K_INT)
     }
 }
